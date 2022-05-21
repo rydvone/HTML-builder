@@ -1,14 +1,30 @@
 const path = require('path');
 const fs = require('fs');
-const { stdin, stdout } = process;
-const readline = require('readline/promises');
+const process = require('process');
+const { stdin, stdout, exit } = process;
+const readline = require('readline');
 // const EventEmitter = require('events');
 // const em = new EventEmitter();
-
+let rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
 const currentPath = path.join(__dirname, 'notes.txt');
+const outStream = fs.createWriteStream(currentPath);
 // const inStream = fs.createReadStream();
 
-stdout.write('Hello, friend!\nPS: Write your text below. Dont forget press Ctrl+C or write <exit> in the end your message\n');
+stdout.write('\nHello, friend!\nPS: Write your text below. Dont forget press Ctrl+C or write <exit> in the end your message\n');
+let i = 1;
+rl.on('line', (line) => {
+  let arrTemp = line.split(' ');
+  let findExit = arrTemp.includes('exit');
+  process.on('end', () => console.log('buy'));
+  if (findExit) {
+    process.exit();
+  }
+  outStream.write(line + '\n')
+  console.log('line-' + i + ': ' + line + '\n');
+  i++;
+});
 
-process.on('end', () => console.log('buy'));
