@@ -14,24 +14,13 @@ fs.readdir(folderPath,
       fs.stat(path.join(__dirname, 'secret-folder', el.name), (err, stats) => {
         let resExtnameIn = path.extname(el.name);
         let resNameIn = path.basename(el.name);
-        let resSizeIn = stats.size;
         res.push(resNameIn.slice(0, (resNameIn.length - resExtnameIn.length)));
         res.push(resExtnameIn.slice(1));
         res.push(stats.size);
         console.log(res.join(' - ') + 'b');
       });
     });
-
-    console.log(arrFiles);
-
   });
-
-
-// if (true) {
-//   process.exit();
-// }
-
-// process.on('exit', () => console.log('\ngoodbuy everybody\n'));
 
 
 
