@@ -14,18 +14,21 @@ const currentPath = path.join(__dirname, 'notes.txt');
 const outStream = fs.createWriteStream(currentPath);
 // const inStream = fs.createReadStream();
 
-stdout.write('\nHello, friend!\nPS: Write your text below. Dont forget press Ctrl+C or write <exit> in the end your message\n');
+stdout.write('\nHello, friend!\nPS: Write your text below. Dont forget press Ctrl+C or write <exit> to the end your message\n');
 let i = 1;
 rl.on('line', (line) => {
   let arrTemp = line.split(' ');
   let findExit = arrTemp.includes('exit');
   
   if (findExit) {
-    process.exit();
+    rl.close();
+
   }
 
   outStream.write(line + '\n')
   console.log('line-' + i + ': ' + line + '\n');
   i++;
 });
+
+rl.on('close', () => process.exit(0));
 process.on('exit', () => console.log('\nGoodbuy, friend.'));
