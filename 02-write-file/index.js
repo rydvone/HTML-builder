@@ -19,12 +19,13 @@ let i = 1;
 rl.on('line', (line) => {
   let arrTemp = line.split(' ');
   let findExit = arrTemp.includes('exit');
-  process.on('end', () => console.log('buy'));
+  
   if (findExit) {
     process.exit();
   }
+
   outStream.write(line + '\n')
   console.log('line-' + i + ': ' + line + '\n');
   i++;
 });
-
+process.on('exit', () => console.log('\nGoodbuy, friend.'));
