@@ -29,19 +29,18 @@ const getFiles = async (path) => {
 async function workDir() {
   await makeDir(pathFolderCopy);
   let curFilesCopy = await getFiles(pathFolderCopy);
-  
-  curFilesCopy.forEach(async (el) => {
+
+  for (const el of curFilesCopy) {
     let pathDel = path.join(__dirname, 'files-copy', el);
     await delFromFilesCopy(pathDel);
-  });
-  curFilesCopy = await getFiles(pathFolderCopy);
+  }
 
   const curFiles = await getFiles(pathFolder);
-  curFiles.forEach((el) => {
+  for (const el of curFiles) {
     let pathSrc = path.join(__dirname, 'files', el);
     let pathDest = path.join(__dirname, 'files-copy', el);
-    copyAllFiles(pathSrc, pathDest);
-  });
+    await copyAllFiles(pathSrc, pathDest);
+  }
 }
 
 try {
