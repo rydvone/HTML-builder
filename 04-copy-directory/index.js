@@ -6,91 +6,62 @@ const fsPromises = require('fs/promises');
 const pathFolder = path.join(__dirname, 'files');
 const pathFolderCopy = path.join(__dirname, 'files-copy');
 
-
-
-async function delPrevFiles(path) {
-  fsPromises.readdir(path, (err, files) => {
-    if (err) throw err;
-    for (let file of files) {
-      fs.stat('file.txt', (errStat, status) => {
-        if (errStat) throw errStat;
-
-        if (status.isDerictory()) {
-          console.log('folder: ' + file);
-          delPrevFiles(path + '/' + file); // продолжаем рекурсию
-        } else {
-          console.log('file: ' + file);
-        }
-      });
-    }
-  });
-}
-// const delPrevFile = async () => {
-// }
-async function copyAllFiles(path, pathCopy) {
-  await fsPromises.copyFile(path, pathCopy);
-}
-
-
-async function workDir() {
+const makeDir = async (path) => {
   await fsPromises.mkdir(
-    pathFolderCopy,
+    path,
     { recursive: true },
     (err) => {
       if (err) throw console.log(err.message);
     }
   );
-  const curFiles = await fsPromises.readdir(pathFolder);
-    // ,(err) => {
-    //   if (err) throw console.log(err.message);
-    // });
+};
 
-  console.log('files - ', curFiles);
+const delFromFilesCopy = async (path) => {
+  await fsPromises.rm(path);
+};
+// const delFromFilesCopy = async (files) => {
+//   files.forEach((el) => {
+//     let pathDel = path.join(__dirname, 'files-copy', el);
+//     fsPromises.rm(pathDel);
+//   });
+// };
+
+const copyAllFiles = async (path, pathCopy) => {
+  await fsPromises.copyFile(path, pathCopy);
+};
+
+const getFiles = async (path) => {
+  return await fsPromises.readdir(path);
+};
+
+async function workDir() {
+  await makeDir(pathFolderCopy);
+  let curFilesCopy = await getFiles(pathFolderCopy);
+
+  console.log('curFilesCopy       1 =     ' + curFilesCopy);
+  curFilesCopy.forEach((el) => {
+    let pathDel = path.join(__dirname, 'files-copy', el);
+    delFromFilesCopy(pathDel);
+  });
+
+  // await delFromFilesCopy(curFilesCopy);
+
+  curFilesCopy = await getFiles(pathFolderCopy);
+  console.log('curFilesCopy after del =   ' + curFilesCopy);
+
+  const curFiles = await getFiles(pathFolder);
   curFiles.forEach((el) => {
     let pathSrc = path.join(__dirname, 'files', el);
     let pathDest = path.join(__dirname, 'files-copy', el);
-    console.log('path 1 = ' + pathSrc + '\npath 2 = ' + pathDest);
     copyAllFiles(pathSrc, pathDest);
   });
-  // await fsPromises.copyFile(
-  //   pathFolder,
-  //   pathFolderCopy,
-  //   { recursive: true },
-  //   (err) => {
-  //     if (err) throw console.log(err.message);
-  //   }
-  // );
-
-  // await delPrevFiles(pathFolderCopy);
+  curFilesCopy = await getFiles(pathFolderCopy);
+  console.log('curFilesCopy final =   ' + curFilesCopy);
 }
-
-
 
 try {
   workDir();
 } catch (error) {
   console.log(error.message);
 }
-
-
-// fs.mkdir(folderPathCopy,
-//   { recursive: true },
-//   (err) => {
-//     if(err) throw console.log(err.message);
-//     console.log('ok');
-// });
-
-// fs.readdir(folderPath,
-//   { recursive: true },
-//   (err) => {
-//     if(err) throw console.log(err.message);
-//     console.log('ok');
-// });
-
-// fs.rmdir(folderPathCopy,
-//   { recursive: true },
-//   (err) => {
-//     if(err) throw console.log(err.message);
-//     console.log('ok');
-// });
 
