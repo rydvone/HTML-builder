@@ -6,6 +6,6 @@ const inputStream = fs.createReadStream(
   'utf-8');
 
 inputStream.on('data', (ch) => stdout.write(ch));
-// inputStream.on('end', () => console.log('the end'));
+inputStream.on('end', () => process.exit(0));
 inputStream.on('error', (err) => console.log(err.message));
 
