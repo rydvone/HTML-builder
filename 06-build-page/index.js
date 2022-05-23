@@ -138,7 +138,7 @@ const copyFolder = async (from, to) => {
       }
   });
 }
-copy
+
 
 async function workDir() {
   await makeDir(pathDist);
@@ -171,6 +171,7 @@ async function workDir() {
 
 
   // await copyFiles(pathAssets);
+  await copyFolder(path.join(__dirname, "assets"), path.join(__dirname, "project-dist", "assets"));
 
   
 
