@@ -5,9 +5,11 @@ const fsPromises = require("fs/promises");
 const pathDist = path.join(__dirname, "project-dist");
 const pathComponents = path.join(__dirname, "components");
 const pathStyles = path.join(__dirname, "styles");
+const pathAssets = path.join(__dirname, "assets");
 const pathTemplate = path.join(__dirname, "template.html");
 const pathIndexHtml = path.join(__dirname, "project-dist", "index.html");
 const pathStyleCss = path.join(__dirname, "project-dist", "style.css");
+const pathTemp = path.join(__dirname, "text.txt");
 
 // let dataTemplate = '';
 
@@ -103,11 +105,40 @@ const mergeCss = async (files) => {
       fs.appendFile(pathStyleCss, 
         dataTemp, 
         (err) => {if (err) console.log(err.message)}));
-    rs.on('error', error => console.log('Error', error.message));
+    rs.on('error', (err) => console.log('error:', err.message));
   });
 };
 
+// const copyFiles = async (path1) => {
+//   fs.readdir(path1, (err, files) => {
+//     if(err) console.log('error:', err.message);
+//     for (let file of files){
+//        fs.stat(path.join(__dirname, file),
+//         (errStat, status) => {
+//           if(errStat) console.log('error:', errStat.message);
 
+//           if(status.isFile()){
+//              console.log('Папка: ' + file);
+//              copyFiles(path1 + '/' + file);
+//           }else{
+//              console.log('Файл: ' + file);
+//           }
+//        });
+//     }
+//  });
+// };
+
+const copyFolder = async (from, to) => {  
+  fs.mkdir(to);
+  fs.readdir(from).forEach(element => {
+      if (fs.stat(path.join(from, element)).isFile()) {
+          fs.copyFile(path.join(from, element), path.join(to, element));
+      } else {
+          copyFolder(path.join(from, element), path.join(to, element));
+      }
+  });
+}
+copy
 
 async function workDir() {
   await makeDir(pathDist);
@@ -137,6 +168,9 @@ async function workDir() {
   console.log(cssFiles);
   // merge css files 
   await mergeCss(cssFiles);
+
+
+  // await copyFiles(pathAssets);
 
   
 
