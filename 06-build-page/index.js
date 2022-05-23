@@ -1,15 +1,15 @@
-const path = require("path");
-const fs = require("fs");
-const fsPromises = require("fs/promises");
+const path = require('path');
+const fs = require('fs');
+const fsPromises = require('fs/promises');
 
-const pathDist = path.join(__dirname, "project-dist");
-const pathComponents = path.join(__dirname, "components");
-const pathStyles = path.join(__dirname, "styles");
-const pathAssets = path.join(__dirname, "assets");
-const pathTemplate = path.join(__dirname, "template.html");
-const pathIndexHtml = path.join(__dirname, "project-dist", "index.html");
-const pathStyleCss = path.join(__dirname, "project-dist", "style.css");
-const pathTemp = path.join(__dirname, "text.txt");
+const pathDist = path.join(__dirname, 'project-dist');
+const pathComponents = path.join(__dirname, 'components');
+const pathStyles = path.join(__dirname, 'styles');
+const pathAssets = path.join(__dirname, 'assets');
+const pathTemplate = path.join(__dirname, 'template.html');
+const pathIndexHtml = path.join(__dirname, 'project-dist', 'index.html');
+const pathStyleCss = path.join(__dirname, 'project-dist', 'style.css');
+const pathTemp = path.join(__dirname, 'text.txt');
 
 // let dataTemplate = '';
 
@@ -28,7 +28,7 @@ const pathTemp = path.join(__dirname, "text.txt");
 
 // console.log(readTemplate(pathTemplate));
 // /{{.*}}/g
-// '12-34-56'.replace( /-/g, ":" )
+// '12-34-56'.replace( /-/g, ':' )
 
 
 
@@ -51,11 +51,11 @@ const getComponentsData = async (files) => {
   let objComponentsData = {};
   for (const el of files) {
     const rs = fs.createReadStream(
-      path.join(__dirname, "components", el),
-      "utf-8"
+      path.join(__dirname, 'components', el),
+      'utf-8'
     );
     // const chunks = [];
-    let dataTemp = "";
+    let dataTemp = '';
     for await (const chunk of rs) {
       // chunks.push(chunk);
       dataTemp += chunk;
@@ -72,8 +72,8 @@ const getComponentsData = async (files) => {
 };
 
 const getTemplateData = async (path) => {
-  const rs = fs.createReadStream(path, "utf-8");
-  let dataTemp = "";
+  const rs = fs.createReadStream(path, 'utf-8');
+  let dataTemp = '';
   for await (const chunk of rs) {
     dataTemp += chunk;
   }
@@ -90,7 +90,7 @@ const makeIndexHtmlData = async (templateData, componentsData) => {
 };
 
 const writeIndexHtml = async (data, path) => {
-  const ws = fs.createWriteStream(path, "utf-8");
+  const ws = fs.createWriteStream(path, 'utf-8');
   ws.write(data);
   ws.end();
 };
@@ -98,13 +98,13 @@ const writeIndexHtml = async (data, path) => {
 const mergeCss = async (files) => {
   const ws = fs.createWriteStream(pathStyleCss);
   files.forEach((el) => {
-    const rs = fs.createReadStream( path.join(__dirname, 'styles', el), 'utf-8');
+    const rs = fs.createReadStream(path.join(__dirname, 'styles', el), 'utf-8');
     let dataTemp = '';
     rs.on('data', chunk => dataTemp += chunk);
-    rs.on('end', () => 
-      fs.appendFile(pathStyleCss, 
-        dataTemp, 
-        (err) => {if (err) console.log(err.message)}));
+    rs.on('end', () =>
+      fs.appendFile(pathStyleCss,
+        dataTemp,
+        (err) => { if (err) console.log(err.message) }));
     rs.on('error', (err) => console.log('error:', err.message));
   });
 };
@@ -128,16 +128,38 @@ const mergeCss = async (files) => {
 //  });
 // };
 
-const copyFolder = async (from, to) => {  
-  fs.mkdir(to);
-  fs.readdir(from).forEach(element => {
-      if (fs.stat(path.join(from, element)).isFile()) {
-          fs.copyFile(path.join(from, element), path.join(to, element));
-      } else {
-          copyFolder(path.join(from, element), path.join(to, element));
-      }
-  });
-}
+const copyCurFile = async (path, pathCopy) => {
+  await fsPromises.copyFile(path, pathCopy);
+};
+
+
+const copyFolder = async (from, to) => {
+  await makeDir(to);
+  let curList = await fsPromises.readdir(from);
+
+  for (const el of curList) {
+    let checkIsFile = (await fsPromises.lstat(path.join(from, el))).isFile();
+    if (checkIsFile) {
+      console.log('file');
+      await copyCurFile(path.join(from, el), path.join(to, el));
+    } else {
+      console.log('not file');
+      await copyFolder(path.join(from, el), path.join(to, el));
+    }
+  }
+
+
+
+  // if (fs.stat(path.join(from, el)).isFile()) {
+  //   // fs.copyFile(path.join(from, element), path.join(to, element));
+  //   console.log('is file');
+  // } else {
+  //   await copyFolder(path.join(from, el), path.join(to, el));
+  // }
+
+
+  return curList;
+};
 
 
 async function workDir() {
@@ -146,7 +168,7 @@ async function workDir() {
 
   // get object w content html components
   let componentsFiles = curFiles.filter(
-    (el) => el.isFile() && path.extname(el.name) === ".html"
+    (el) => el.isFile() && path.extname(el.name) === '.html'
   );
   componentsFiles = componentsFiles.map((el) => el.name);
   // let componentsFilesFinder = componentsFiles.map((el) => el.slice(0, -5));
@@ -169,11 +191,13 @@ async function workDir() {
   // merge css files 
   await mergeCss(cssFiles);
 
+  const pathFrom = path.join(__dirname, 'assets');
+  const pathTo = path.join(__dirname, 'project-dist', 'assets');
 
   // await copyFiles(pathAssets);
-  await copyFolder(path.join(__dirname, "assets"), path.join(__dirname, "project-dist", "assets"));
+  let someth = await copyFolder(pathFrom, pathTo);
+  console.log(someth);
 
-  
 
 
   //   fs.appendFile(path.join(__dirname, 'components', 'el.html'),
