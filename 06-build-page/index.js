@@ -127,41 +127,29 @@ const delFoldersFiles = async (pth) => {
 
 async function mainFn() {
   try {
-    // delete project-dist before new build
     await delFoldersFiles(pathDist);
-
     await makeDir(pathDist);
     
     let curFiles = await getFiles(pathComponents);
-    // get object w content html components
     let componentsFiles = curFiles.filter(
       (el) => el.isFile() && path.extname(el.name) === '.html'
     );
     componentsFiles = componentsFiles.map((el) => el.name);
-    // let componentsFilesFinder = componentsFiles.map((el) => el.slice(0, -5));
     let componentsData = await getComponentsData(componentsFiles);
 
-    // get data w content html template
     let templateData = await getTemplateData(pathTemplate);
 
-    // make data w content html template + components
     let indexHtmlData = await makeIndexHtmlData(templateData, componentsData);
-    
-    // write data html to file
+
     await writeIndexHtml(indexHtmlData, pathIndexHtml);
 
-    // get name css files 
     curFiles = await getFiles(pathStyles);
     let cssFiles = curFiles.filter((el) => el.isFile() && path.extname(el.name) === '.css');
     cssFiles = cssFiles.map((el) => el.name);
-    // merge css files 
+
     await mergeCss(cssFiles);
 
-    const pathFrom = path.join(__dirname, 'assets');
-    const pathTo = path.join(__dirname, 'project-dist', 'assets');
-
-    // copy assets to project-dist
-    await copyFolder(pathFrom, pathTo);
+    await copyFolder(pathAssets, pathDistAssets);
 
   } catch (error) {
     console.log('error is: ' + error.message);
@@ -169,4 +157,3 @@ async function mainFn() {
 }
 
 mainFn();
-
