@@ -2,7 +2,9 @@ const path = require("path");
 const fs = require("fs");
 const fsPromises = require("fs/promises");
 
+const pathDist = path.join(__dirname, "project-dist");
 const pathComponents = path.join(__dirname, "components");
+const pathStyles = path.join(__dirname, "styles");
 const pathTemplate = path.join(__dirname, "template.html");
 const pathIndexHtml = path.join(__dirname, "project-dist", "index.html");
 const pathStyleCss = path.join(__dirname, "project-dist", "style.css");
@@ -25,6 +27,18 @@ const pathStyleCss = path.join(__dirname, "project-dist", "style.css");
 // console.log(readTemplate(pathTemplate));
 // /{{.*}}/g
 // '12-34-56'.replace( /-/g, ":" )
+
+
+
+const makeDir = async (path) => {
+  await fsPromises.mkdir(
+    path,
+    { recursive: true },
+    (err) => {
+      if (err) throw console.log(err.message);
+    }
+  );
+};
 
 // get list file
 const getFiles = async (path) => {
@@ -73,7 +87,30 @@ const makeIndexHtmlData = async (templateData, componentsData) => {
   return res;
 };
 
+const writeIndexHtml = async (data, path) => {
+  const ws = fs.createWriteStream(path, "utf-8");
+  ws.write(data);
+  ws.end();
+};
+
+const mergeCss = async (files) => {
+  const ws = fs.createWriteStream(pathStyleCss);
+  files.forEach((el) => {
+    const rs = fs.createReadStream( path.join(__dirname, 'styles', el), 'utf-8');
+    let dataTemp = '';
+    rs.on('data', chunk => dataTemp += chunk);
+    rs.on('end', () => 
+      fs.appendFile(pathStyleCss, 
+        dataTemp, 
+        (err) => {if (err) console.log(err.message)}));
+    rs.on('error', error => console.log('Error', error.message));
+  });
+};
+
+
+
 async function workDir() {
+  await makeDir(pathDist);
   let curFiles = await getFiles(pathComponents);
 
   // get object w content html components
@@ -90,8 +127,20 @@ async function workDir() {
   // make data w content html template + components
   let indexHtmlData = await makeIndexHtmlData(templateData, componentsData);
 
+  // write data html to file
+  await writeIndexHtml(indexHtmlData, pathIndexHtml);
+
+  // get name css files 
+  curFiles = await getFiles(pathStyles);
+  let cssFiles = curFiles.filter((el) => el.isFile() && path.extname(el.name) === '.css');
+  cssFiles = cssFiles.map((el) => el.name);
+  console.log(cssFiles);
+  // merge css files 
+  await mergeCss(cssFiles);
 
   
+
+
   //   fs.appendFile(path.join(__dirname, 'components', 'el.html'),
   //     dataTemp,
   //     (err) => {if (err) console.log(err.message)});
