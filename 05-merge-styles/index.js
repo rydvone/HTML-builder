@@ -11,29 +11,27 @@ const getFiles = async (path) => {
 
 const copyData = async (files) => {
   const ws = fs.createWriteStream(pathBundle);
-
   files.forEach((el) => {
-    const rs = fs.createReadStream( path.join(__dirname, 'styles', el), 'utf-8');
+    const rs = fs.createReadStream(path.join(__dirname, 'styles', el), 'utf-8');
     let dataTemp = '';
     rs.on('data', chunk => dataTemp += chunk);
-    rs.on('end', () => 
-      fs.appendFile(pathBundle, 
-        dataTemp, 
-        (err) => {if (err) console.log(err.message)}));
+    rs.on('end', () =>
+      fs.appendFile(pathBundle,
+        dataTemp,
+        (err) => {if (err) console.log(err.message);}));
     rs.on('error', error => console.log('Error', error.message));
   });
 };
 
 async function workDir() {
-  let curFiles = await getFiles(pathStyles);
-  let cssFiles = curFiles.filter((el) => el.isFile() && path.extname(el.name) === '.css');
-  cssFiles = cssFiles.map((el) => el.name);
-  await copyData(cssFiles);
+  try {
+    let curFiles = await getFiles(pathStyles);
+    let cssFiles = curFiles.filter((el) => el.isFile() && path.extname(el.name) === '.css');
+    cssFiles = cssFiles.map((el) => el.name);
+    await copyData(cssFiles);
+  } catch (error) {
+    console.log(error.message);
+  }
 }
 
-try {
-  workDir();
-} catch (error) {
-  console.log(error.message);
-}
-
+workDir();
