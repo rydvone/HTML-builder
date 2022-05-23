@@ -1,5 +1,4 @@
 const path = require('path');
-const process = require('process');
 const fs = require('fs');
 
 const folderPath = path.join(__dirname, 'secret-folder');
