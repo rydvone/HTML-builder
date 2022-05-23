@@ -12,6 +12,154 @@ const pathStyleCss = path.join(__dirname, 'project-dist', 'style.css');
 
 // let dataTemplate = '';
 
+// const readTemplate = (path) => {
+//   let dataTemp = '';
+//   const rs = fs.createReadStream(path, 'utf-8');
+
+//   rs.on('data', (chunk) => dataTemp += chunk);
+//   rs.on('end', () => console.log(dataTemp));
+
+//   // let finder = dataTemp.match(/{{.*}}/);
+//   // console.log(finder);
+//   console.log(dataTemp);
+//   return dataTemp;
+// };
+
+// console.log(readTemplate(pathTemplate));
+// /{{.*}}/g
+// '12-34-56'.replace( /-/g, ':' )
+
+
+
+const makeDir = async (path) => {
+  await fsPromises.mkdir(
+    path,
+    { recursive: true },
+    (err) => {
+      if (err) throw console.log(err.message);
+    }
+  );
+};
+
+// get list file
+const getFiles = async (path) => {
+  return await fsPromises.readdir(path, { withFileTypes: true });
+};
+
+const getComponentsData = async (files) => {
+  let objComponentsData = {};
+  for (const el of files) {
+    const rs = fs.createReadStream(
+      path.join(__dirname, 'components', el),
+      'utf-8'
+    );
+    // const chunks = [];
+    let dataTemp = '';
+    for await (const chunk of rs) {
+      // chunks.push(chunk);
+      dataTemp += chunk;
+      // console.log(chunk);
+    }
+    objComponentsData[el.slice(0, -5)] = dataTemp;
+    // if (el.slice(0, -5) == 'header') {
+    //   fs.appendFile(path.join(__dirname, 'components', 'el.html'),
+    //     dataTemp,
+    //     (err) => {if (err) console.log(err.message)});
+    // }
+  }
+  return objComponentsData;
+};
+
+const getTemplateData = async (path) => {
+  const rs = fs.createReadStream(path, 'utf-8');
+  let dataTemp = '';
+  for await (const chunk of rs) {
+    dataTemp += chunk;
+  }
+  return dataTemp;
+};
+
+const makeIndexHtmlData = async (templateData, componentsData) => {
+  let res = templateData;
+  for (let key in componentsData) {
+    let re = new RegExp(`{{${key}}}`);
+    res = res.replace(re, componentsData[key]);
+  }
+  return res;
+};
+
+const writeIndexHtml = async (data, path) => {
+  const ws = fs.createWriteStream(path, 'utf-8');
+  ws.write(data);
+  ws.end();
+};
+
+const mergeCss = async (files) => {
+  const ws = fs.createWriteStream(pathStyleCss);
+  files.forEach((el) => {
+    const rs = fs.createReadStream(path.join(__dirname, 'styles', el), 'utf-8');
+    let dataTemp = '';
+    rs.on('data', chunk => dataTemp += chunk);
+    rs.on('end', () =>
+      fs.appendFile(pathStyleCss,
+        dataTemp,
+        (err) => { if (err) console.log(err.message) }));
+    rs.on('error', (err) => console.log('error:', err.message));
+  });
+};
+
+// const copyFiles = async (path1) => {
+//   fs.readdir(path1, (err, files) => {
+//     if(err) console.log('error:', err.message);
+//     for (let file of files){
+//        fs.stat(path.join(__dirname, file),
+//         (errStat, status) => {
+//           if(errStat) console.log('error:', errStat.message);
+
+//           if(status.isFile()){
+//              console.log('Папка: ' + file);
+//              copyFiles(path1 + '/' + file);
+//           }else{
+//              console.log('Файл: ' + file);
+//           }
+//        });
+//     }
+//  });
+// };
+
+const copyCurFile = async (path, pathCopy) => {
+  await fsPromises.copyFile(path, pathCopy);
+};
+
+
+const copyFolder = async (from, to) => {
+  await makeDir(to);
+  let curList = await fsPromises.readdir(from);
+
+  for (const el of curList) {
+    let checkIsFile = (await fsPromises.lstat(path.join(from, el))).isFile();
+    if (checkIsFile) {
+      console.log('file');
+      await copyCurFile(path.join(from, el), path.join(to, el));
+    } else {
+      console.log('not file');
+      await copyFolder(path.join(from, el), path.join(to, el));
+    }
+  }
+
+
+
+  // if (fs.stat(path.join(from, el)).isFile()) {
+  //   // fs.copyFile(path.join(from, element), path.join(to, element));
+  //   console.log('is file');
+  // } else {
+  //   await copyFolder(path.join(from, el), path.join(to, el));
+  // }
+
+
+  return curList;
+};
+
 const delFolderFile = async (pth) => {
   await fsPromises.rmdir(pth, { recursive: true, force: true }, ((err) => {
     if (err) throw err;
